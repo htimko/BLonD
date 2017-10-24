@@ -235,6 +235,7 @@ class RFStation(object):
  
         # Process RF programs
         self.harmonic = harmonic
+        print(self.harmonic)
         self.empty = False
         # Empty RFStation
         if any(it < 0 for it in self.harmonic):

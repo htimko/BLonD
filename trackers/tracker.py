@@ -278,6 +278,9 @@ class RingAndRFTracker(object):
                                " interpolation not recognised!")
         self.profile = Profile
         self.totalInducedVoltage = TotalInducedVoltage        
+        if (self.totalInducedVoltage is not None) and (self.interpolation is False):
+            self.interpolation = True
+            self.logger.warning("Setting interpolation to TRUE")
         if (self.interpolation is True) and (self.profile is None):
             raise RuntimeError("ERROR in RingAndRFTracker: Please specify a" +
                 " Profile object to use the interpolation option")

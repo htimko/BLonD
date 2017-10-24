@@ -41,13 +41,14 @@ class BunchMonitor(object):
         self.rf_params = RFParameters
         self.beam = Beam
         self.profile = Profile
-        if self.profile:
-            if self.profile.fit_option is 'gaussian':
-                self.gaussian = True
-            else:
-                self.gaussian = False
-        else:
-            self.gaussian = False
+#         if self.profile:
+#             if self.profile.fit_option is 'gaussian':
+#                 self.gaussian = True
+#             else:
+#                 self.gaussian = False
+#         else:
+#             self.gaussian = False
+        self.gaussian = False
         self.PL = PhaseLoop
         self.LHCNoiseFB = LHCNoiseFB
 

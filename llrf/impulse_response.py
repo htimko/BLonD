@@ -199,7 +199,7 @@ class TravellingWaveCavity(object):
 
     """
 
-    def __init__(self, l_cell, N_cells, rho, v_g, omega_r):
+    def __init__(self, l_cell, N_cells, rho, v_g, omega_r, mode='h'):
 
         self.l_cell = float(l_cell)
         self.N_cells = int(N_cells)
@@ -210,6 +210,10 @@ class TravellingWaveCavity(object):
             raise RuntimeError("ERROR in TravellingWaveCavity: group" +
                                " velocity out of limits (0,1)!")
         self.omega_r = float(omega_r)
+        self.mode = str(mode)
+        if self.mode not in ['h', 'W', 'h-W']:
+            raise RuntimeError("ERROR in TravellingWaveCavity: mode" +
+                               " not recognized!")
 
         # Calculated
         self.l_cav = float(self.l_cell*self.N_cells)
@@ -226,7 +230,25 @@ class TravellingWaveCavity(object):
         self.logger = logging.getLogger(__class__.__name__)
         self.logger.info("Class initialized")
         self.logger.debug("Filling time %.4e s", self.tau)
+        
 
+    def beam_response(self, time):
+        """
+        """
+        self.t_beam = time - time[0]
+        self.f_beam = 2*self.R_beam/self.tau*triangle(self.t_beam, self.tau)
+        
+        self.__getattribute__("track_" + self.mode)()
+        
+    def track_h(self):
+        
+        
+    def track_W(self):
+    def track_h-W(self):
+        
+        self.track_h()
+        self.track_W()
+        
     def impulse_response(self, omega_c, time):
         """Impulse response from the cavity towards the beam and towards the 
         generator. For a signal that is I,Q demodulated at a given carrier 
