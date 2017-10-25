@@ -21,7 +21,7 @@ import numpy as np
 
 from input_parameters.ring import Ring
 from input_parameters.rf_parameters import RFStation
-from beam.beam import Beam, Proton
+from beam.beam import Beam, Proton, Electron
 from beam.distributions import bigaussian
 from beam.profile import Profile, CutOptions
 from llrf.beam_feedback import BeamFeedback
@@ -33,7 +33,8 @@ class TestSeparatrixBigaussian(unittest.TestCase):
     
     
     # Run before every test
-    def setUp(self, negativeEta = True, acceleration = True, singleRF = True):
+    def setUp(self, negativeEta=True, acceleration=True, singleRF=True,
+              particle=Proton()):
         # Defining parameters -------------------------------------------------
         # Bunch parameters
         N_b = 1.e9           # Intensity
@@ -53,52 +54,62 @@ class TestSeparatrixBigaussian(unittest.TestCase):
         # RF parameters
         h = [9,18]         # Harmonic number
         V = [1800.e3,110.e3] # RF voltage [V]
-        phi_1 = [np.pi+1.,np.pi/6+2.]  # Phase modulation/offset
-        phi_2 = [1.,np.pi/6+2.]        # Phase modulation/offset
+#        phi_1 = [np.pi+1., np.pi/6+2.]  # Phase modulation/offset
+#        phi_2 = [1., np.pi/6+2.]        # Phase modulation/offset
+        if (negativeEta is True and particle.charge > 0 or 
+            negativeEta is False and particle.charge < 0):
+            phi_single = np.pi + 1
+            phi_double = [np.pi + 1, np.pi/6 + 2]
+        else:
+            phi_single = 1
+            phi_double = [1, np.pi/6 + 2]            
         N_t = 43857
 
         # Defining classes ----------------------------------------------------
         # Define general parameters
-        if( negativeEta == True ): 
+        if negativeEta is True: 
     
-            if acceleration == True:
+            if acceleration is True:
                 # eta < 0, acceleration
-                general_params = Ring(N_t, C, alpha_1, 
-                    np.linspace(p_1i, p_1f, N_t + 1), Proton())
-            elif acceleration == False: 
+                general_params = Ring(C, alpha_1,
+                                      np.linspace(p_1i, p_1f, N_t + 1), 
+                                      particle, n_turns=N_t)
+            elif acceleration is False: 
                 # eta < 0, deceleration
-                general_params = Ring(N_t, C, alpha_1, 
-                    np.linspace(p_1f, p_1i, N_t + 1), Proton())
+                general_params = Ring(C, alpha_1, 
+                                      np.linspace(p_1f, p_1i, N_t + 1),
+                                      particle, n_turns=N_t)
         
-            if singleRF == True:
+            if singleRF is True:
                 rf_params = RFStation(general_params, 1, 9, 1.8e6, 
-                    np.pi + 1., accelerating_systems = 'as_single')
-            elif singleRF == False:
-                rf_params = RFStation(general_params, 2, h, V, phi_1, 
+                    phi_single, accelerating_systems = 'as_single')
+            elif singleRF is False:
+                rf_params = RFStation(general_params, 2, h, V, phi_double, 
                     accelerating_systems = 'all')
         
-        elif( negativeEta == False ): 
+        elif negativeEta is False: 
 
-            if acceleration == True:
+            if acceleration is True:
                 # eta > 0, acceleration
-                general_params = Ring(N_t, C, alpha_2, 
-                    np.linspace(p_2i, p_2f, N_t + 1), Proton())
-            elif acceleration == False: 
+                general_params = Ring(C, alpha_2, 
+                                      np.linspace(p_2i, p_2f, N_t + 1),
+                                      particle, n_turns=N_t)
+            elif acceleration is False: 
                 # eta > 0, deceleration
-                general_params = Ring(N_t, C, alpha_2, 
-                    np.linspace(p_2f, p_2i, N_t + 1), Proton())
+                general_params = Ring(C, alpha_2, 
+                                      np.linspace(p_2f, p_2i, N_t + 1),
+                                      particle, n_turns=N_t)
                 
-            if singleRF == True:
+            if singleRF is True:
                 rf_params = RFStation(general_params, 1, 9, 1.8e6, 
-                    1., accelerating_systems = 'as_single')
-            elif singleRF == False:
-                rf_params = RFStation(general_params, 2, h, V, phi_2, 
+                    phi_single, accelerating_systems = 'as_single')
+            elif singleRF is False:
+                rf_params = RFStation(general_params, 2, h, V, phi_double, 
                     accelerating_systems = 'all')
 
         # Define beam and distribution
         beam = Beam(general_params, N_p, N_b)
-        bigaussian(general_params, rf_params, beam, tau_0/4, 
-                                seed = 1234) 
+        bigaussian(general_params, rf_params, beam, tau_0/4, seed=1234) 
         #print(np.mean(beam.dt))
         slices = Profile(beam, CutOptions(cut_left=0.e-9, cut_right=600.e-9, 
                                           n_slices=1000))
@@ -113,7 +124,7 @@ class TestSeparatrixBigaussian(unittest.TestCase):
         self.phi_b = PL.phi_beam
         self.phi_rf = rf_params.phi_rf[0,0]
         self.dE_sep = separatrix(general_params, rf_params, 
-                                 [-5.e-7,-3.e-7,1.e-7,3.e-7,7.e-7,9.e-7])
+                                 [-5.e-7, -3.e-7, 1.e-7, 3.e-7, 7.e-7, 9.e-7])
 
 
     # Run after every test
@@ -128,12 +139,13 @@ class TestSeparatrixBigaussian(unittest.TestCase):
     # Actual tests: compare with expected values
     def test_1(self):
 
-        self.setUp(negativeEta = True, acceleration = True, singleRF = True)
+        self.setUp(negativeEta=True, acceleration=True, singleRF=True,
+                   particle=Proton())
 
         self.assertAlmostEqual(self.phi_s, 3.4741, places = 3, 
-            msg = 'Failed test_1 in TestSeparatrixBigaussian on phi_s')
+            msg = 'Failed test_1 for p+ in TestSeparatrixBigaussian on phi_s')
         self.assertAlmostEqual(self.phi_b, 3.4742, places  = 3,
-            msg = 'Failed test_1 in TestSeparatrixBigaussian on phi_b')
+            msg = 'Failed test_1 for p+ in TestSeparatrixBigaussian on phi_b')
         self.assertAlmostEqual(self.phi_rf, 4.1416, places = 3,
             msg = 'Failed test_1 in TestSeparatrixBigaussian on phi_rf')
         self.assertAlmostEqual(self.dE_sep[0], 21061257.1819199, delta = 1.e2,
@@ -147,9 +159,18 @@ class TestSeparatrixBigaussian(unittest.TestCase):
         self.assertAlmostEqual(self.dE_sep[5], 44050421.49141181, delta = 1.e2,
             msg = 'Failed test_1 in TestSeparatrixBigaussian on dE_sep[5]')
 
+#         self.setUp(negativeEta=True, acceleration=True, singleRF=True,
+#                    particle=Electron())
+# 
+#         self.assertAlmostEqual(self.phi_s, 3.4741, places = 3, 
+#             msg = 'Failed test_1 for e- in TestSeparatrixBigaussian on phi_s')
+#         self.assertAlmostEqual(self.phi_b, 3.4742, places  = 3,
+#             msg = 'Failed test_1 for e- in TestSeparatrixBigaussian on phi_b')
+
     def test_2(self):
 
-        self.setUp(negativeEta = True, acceleration = True, singleRF = False)
+        self.setUp(negativeEta=True, acceleration=True, singleRF=False,
+                   particle=Proton())
         
         self.assertAlmostEqual(self.phi_s, 3.4152, places = 3, 
             msg = 'Failed test_2 in TestSeparatrixBigaussian on phi_s')
@@ -171,7 +192,8 @@ class TestSeparatrixBigaussian(unittest.TestCase):
 
     def test_3(self):
 
-        self.setUp(negativeEta = True, acceleration = False, singleRF = True)
+        self.setUp(negativeEta=True, acceleration=False, singleRF=True,
+                   particle=Proton())
         
         self.assertAlmostEqual(self.phi_s, 2.7927, places = 3, 
             msg = 'Failed test_3 in TestSeparatrixBigaussian on phi_s')
@@ -193,7 +215,8 @@ class TestSeparatrixBigaussian(unittest.TestCase):
 
     def test_4(self):
 
-        self.setUp(negativeEta = True, acceleration = False, singleRF = False)
+        self.setUp(negativeEta=True, acceleration=False, singleRF=False,
+                   particle=Proton())
         
         self.assertAlmostEqual(self.phi_s, 2.8051, places = 3, 
             msg = 'Failed test_4 in TestSeparatrixBigaussian on phi_s')
@@ -215,7 +238,8 @@ class TestSeparatrixBigaussian(unittest.TestCase):
 
     def test_5(self):
 
-        self.setUp(negativeEta = False, acceleration = True, singleRF = True)
+        self.setUp(negativeEta=False, acceleration=True, singleRF=True,
+                   particle=Proton())
         
         self.assertAlmostEqual(self.phi_s, 3.3977, places = 3, 
             msg = 'Failed test_5 in TestSeparatrixBigaussian on phi_s')
@@ -239,7 +263,8 @@ class TestSeparatrixBigaussian(unittest.TestCase):
     
     def test_6(self):
 
-        self.setUp(negativeEta = False, acceleration = True, singleRF = False)
+        self.setUp(negativeEta=False, acceleration=True, singleRF=False,
+                   particle=Proton())
         
         self.assertAlmostEqual(self.phi_s, 3.4529, places = 3, 
             msg = 'Failed test_6 in TestSeparatrixBigaussian on phi_s')
@@ -263,7 +288,8 @@ class TestSeparatrixBigaussian(unittest.TestCase):
     
     def test_7(self):
 
-        self.setUp(negativeEta = False, acceleration = False, singleRF = True)
+        self.setUp(negativeEta=False, acceleration=False, singleRF=True,
+                   particle=Proton())
         
         self.assertAlmostEqual(self.phi_s, 2.8855, places = 3, 
             msg = 'Failed test_7 in TestSeparatrixBigaussian on phi_s')
@@ -287,7 +313,8 @@ class TestSeparatrixBigaussian(unittest.TestCase):
     
     def test_8(self):
 
-        self.setUp(negativeEta = False, acceleration = False, singleRF = False)
+        self.setUp(negativeEta=False, acceleration=False, singleRF=False,
+                   particle=Proton())
         
         self.assertAlmostEqual(self.phi_s, 2.8869, places = 3, 
             msg = 'Failed test_8 in TestSeparatrixBigaussian on phi_s')

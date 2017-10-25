@@ -830,6 +830,7 @@ def bigaussian(Ring, RFStation, Beam, sigma_dt, sigma_dE = None, seed = None,
     phi_s = RFStation.phi_s[counter]
     phi_rf = RFStation.phi_rf[0,counter]
     eta0 = RFStation.eta_0[counter]
+    charge = Beam.Particle.charge
     
     # RF wave is shifted by Pi below transition
     if eta0<0:
@@ -837,12 +838,11 @@ def bigaussian(Ring, RFStation, Beam, sigma_dt, sigma_dE = None, seed = None,
     
     # Calculate sigma_dE from sigma_dt using single-harmonic Hamiltonian
     if sigma_dE == None:
-        voltage = RFStation.charge* \
-                  RFStation.voltage[0,counter]
+        voltage = RFStation.voltage[0,counter]
         eta0 = RFStation.eta_0[counter]
         
         phi_b = omega_rf*sigma_dt + phi_s
-        sigma_dE = np.sqrt( voltage * energy * beta**2  
+        sigma_dE = np.sqrt( charge * voltage * energy * beta**2  
             * (np.cos(phi_b) - np.cos(phi_s) + (phi_b - phi_s) * np.sin(phi_s)) 
             / (np.pi * harmonic * np.fabs(eta0)) )
                 
