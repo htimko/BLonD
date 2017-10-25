@@ -234,14 +234,7 @@ class RFStation(object):
         self.sign_eta_0 = np.sign(self.eta_0)   
  
         # Process RF programs
-        self.harmonic = harmonic
-        print(self.harmonic)
-        self.empty = False
-        # Empty RFStation
-        if any(it < 0 for it in self.harmonic):
-            self.empty = True
-            self.harmonic = [ abs(it) for it in self.harmonic ]
-        
+        self.harmonic = harmonic        
         self.voltage = voltage
         self.phi_rf_d = phi_rf_d
         self.omega_rf = omega_rf
@@ -286,6 +279,13 @@ class RFStation(object):
                 self.phi_noise = phi_noise
             if omega_rf != None:
                 self.omega_rf = omega_rf
+
+        self.empty = False
+        # Empty RFStation
+        if any(it < 0 for it in self.harmonic):
+            self.empty = True
+            self.harmonic = [ abs(it) for it in self.harmonic ]
+
         # Run input_check() on all RF systems
         for i in range(self.n_rf):
             self.harmonic[i] = input_check(self.harmonic[i], self.n_turns+1)
