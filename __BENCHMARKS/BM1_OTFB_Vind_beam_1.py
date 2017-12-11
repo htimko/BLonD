@@ -38,9 +38,9 @@ C = 2*np.pi*1100.009        # Ring circumference [m]
 gamma_t = 18.0              # Gamma at transition
 alpha = 1/gamma_t**2        # Momentum compaction factor
 p_s = 25.92e9               # Synchronous momentum at injection [eV]
-h = [4620]                    # 200 MHz system harmonic
-V = [4.5e6]                   # 200 MHz RF voltage
-phi = [0.]                    # 200 MHz RF phase
+h = 4620                    # 200 MHz system harmonic
+V = 4.5e6                   # 200 MHz RF voltage
+phi = 0.                    # 200 MHz RF phase
 
 # Beam and tracking parameters
 N_m = 1e5                   # Number of macro-particles for tracking
@@ -70,7 +70,7 @@ else:
     Logger().disable()
 
 # Set up machine parameters
-ring = Ring(N_t, C, alpha, p_s, Particle=Proton())
+ring = Ring(C, alpha, p_s, Particle=Proton(), n_turns=N_t)
 print("Machine parameters set!")
 
 # Set up RF parameters

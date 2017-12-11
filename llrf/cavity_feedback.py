@@ -112,7 +112,7 @@ class SPSCavityFeedback(object):
         # Calculate OTFB correction w.r.t. RF voltage and phase in RFStation
         self.V_corr, self.phi_corr = cartesian_to_polar(self.V_sum)
         self.V_corr /= self.rf.voltage[0, self.rf.counter[0]]
-        self.phi_corr -= self.rf.phi_rf[0, self.rf.counter[0]]
+        self.phi_corr -= self.rf.phi_rf[0, self.rf.counter[0]] + 0.5*np.pi
 
     def track_init(self, debug=False):
 
@@ -152,8 +152,8 @@ class SPSCavityFeedback(object):
             ax1_1.set_ylabel(r"$Re(V_{\mathsf{cav}})$ [MV]")
             ax1_2.set_xlabel(r"Time [$\mu$s]")
             ax1_2.set_ylabel(r"$Im(V_{\mathsf{cav}})$ [MV]")
-            ax1_1.set_ylim((-1, 5))
-            ax1_2.set_ylim((0, 7))
+            ax1_1.set_ylim((-1, 7))
+            ax1_2.set_ylim((-1, 7))
 
         for i in range(self.turns):
             self.logger.debug("Pre-tracking w/o beam, iteration %d", i)

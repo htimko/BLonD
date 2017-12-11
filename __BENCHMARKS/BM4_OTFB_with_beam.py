@@ -39,9 +39,9 @@ C = 2*np.pi*1100.009        # Ring circumference [m]
 gamma_t = 18.0              # Gamma at transition
 alpha = 1/gamma_t**2        # Momentum compaction factor
 p_s = 25.92e9               # Synchronous momentum at injection [eV]
-h = [4620]                    # 200 MHz system harmonic
-V = [4.5e6] #2.2e6                   # 200 MHz RF voltage
-phi = [0.]                    # 200 MHz RF phase
+h = 4620                    # 200 MHz system harmonic
+V = 4.5e6 #2.2e6            # 200 MHz RF voltage
+phi = 0.                    # 200 MHz RF phase
 
 # Beam and tracking parameters
 N_m = 1e5                   # Number of macro-particles for tracking
@@ -66,7 +66,7 @@ colors = jet(np.linspace(0,1,N_t))
 Logger(debug = True)
 
 # Set up machine parameters
-ring = Ring(N_t, C, alpha, p_s, Particle=Proton())
+ring = Ring(C, alpha, p_s, Particle=Proton(), n_turns=N_t)
 print("Machine parameters set!")
 
 # Set up RF parameters
@@ -133,11 +133,11 @@ plt.subplots_adjust(hspace=.0)
 ax1_1.set_ylabel(r"$Re(V_{\mathsf{cav}})$ [MV]")
 ax1_2.set_xlabel(r"Time [$\mu$s]")
 ax1_2.set_ylabel(r"$Im(V_{\mathsf{cav}})$ [MV]")
-ax1_1.set_ylim((-1,5))
-ax1_2.set_ylim((0,7))
+ax1_1.set_ylim((-1,7)) #(-2,5)
+ax1_2.set_ylim((-1,7)) #(0,7)
  
  
-# Plot 2: cavity voltage
+# Plot 2: induced voltage
 fig2 = plt.figure(5, figsize=(8,10))
 gs2 = gridspec.GridSpec(2, 1) 
 ax2_1 = plt.subplot(gs2[0])
@@ -150,14 +150,18 @@ plt.subplots_adjust(hspace=.0)
 ax2_1.set_ylabel(r"$Re(V_{\mathsf{ind,beam}})$ [MV]")
 ax2_2.set_xlabel(r"Time [$\mu$s]")
 ax2_2.set_ylabel(r"$Im(V_{\mathsf{ind,beam}})$ [MV]")
-ax2_1.set_ylim((-1,5))
-ax2_2.set_ylim((-5,1))
+ax2_1.set_ylim((-4,5))
+ax2_2.set_ylim((-4,5)) #(-2,2)
  
  
 OTFB.OTFB_4.V_ind_beam = np.zeros(profile.n_slices)
 OTFB.OTFB_5.V_ind_beam = np.zeros(profile.n_slices)
 
-
+#plt.figtext(0.95,0.95,'Beam in', figure=fig1, fontsize=16, ha='right',
+#            va='center') 
+ax1_1.annotate('Beam in', xy=(0,0), xytext=(0.95, 0.95),
+            textcoords='figure fraction', horizontalalignment='right',
+            verticalalignment='center')
 
 print("Starting to track...")
 for i in range(N_t):

@@ -240,14 +240,14 @@ class TravellingWaveCavity(object):
         
         self.__getattribute__("track_" + self.mode)()
         
-    def track_h(self):
-        
-        
-    def track_W(self):
-    def track_h-W(self):
-        
-        self.track_h()
-        self.track_W()
+#     def track_h(self):
+#         
+#         
+#     def track_W(self):
+#     def track_h-W(self):
+#         
+#         self.track_h()
+#         self.track_W()
         
     def impulse_response(self, omega_c, time):
         """Impulse response from the cavity towards the beam and towards the 

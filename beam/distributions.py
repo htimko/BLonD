@@ -22,7 +22,7 @@ import warnings
 import copy
 import matplotlib.pyplot as plt
 from trackers.utilities import is_in_separatrix
-from beam.profile import Profile
+from beam.profile import Profile, CutOptions
 from scipy.integrate import cumtrapz
 from trackers.utilities import potential_well_cut, minmax_location
 
@@ -662,11 +662,10 @@ def X0_from_bunch_length(bunch_length, bunch_length_fit, X_grid, sorted_X_dE0,
                       np.sum(line_density_))
                 
                 if bunch_length_fit!=None:
-                    profile = Profile(
-                      full_ring_and_RF.RingAndRFSection_list[0].rf_params,
-                      beam, n_points_grid, cut_left=time_potential_low_res[0] -
-                      0.5*bin_size , cut_right=time_potential_low_res[-1] +
-                      0.5*bin_size)
+                    profile = Profile(beam, CutOptions=CutOptions(
+                        cut_left=time_potential_low_res[0] - 0.5*bin_size,
+                        cut_right=time_potential_low_res[-1] + 0.5*bin_size, 
+                        n_slices=n_points_grid))
                         
                     profile.n_macroparticles = line_density_
                     
@@ -675,10 +674,10 @@ def X0_from_bunch_length(bunch_length, bunch_length_fit, X_grid, sorted_X_dE0,
                         profile.bp_gauss = np.sum(line_density_ *
                                 time_potential_low_res) / np.sum(line_density_)
                         profile.gaussian_fit()
-                        tau = profile.bl_gauss
+                        tau = profile.bunchLength
                     elif bunch_length_fit is 'fwhm':
                         profile.fwhm()
-                        tau = profile.bl_fwhm                        
+                        tau = profile.bunchLength                        
         
         # Update of the interval for the next iteration
         if tau >= bunch_length:
@@ -834,7 +833,8 @@ def bigaussian(Ring, RFStation, Beam, sigma_dt, sigma_dE = None, seed = None,
     
     # RF wave is shifted by Pi below transition
     if eta0<0:
-        phi_rf -= np.pi
+#        phi_rf -= np.pi
+        phi_s -= np.pi
     
     # Calculate sigma_dE from sigma_dt using single-harmonic Hamiltonian
     if sigma_dE == None:
@@ -844,7 +844,8 @@ def bigaussian(Ring, RFStation, Beam, sigma_dt, sigma_dE = None, seed = None,
         phi_b = omega_rf*sigma_dt + phi_s
         sigma_dE = np.sqrt( charge * voltage * energy * beta**2  
             * (np.cos(phi_b) - np.cos(phi_s) + (phi_b - phi_s) * np.sin(phi_s)) 
-            / (np.pi * harmonic * np.fabs(eta0)) )
+            / (np.pi * harmonic * eta0) )
+#            / (np.pi * harmonic * np.fabs(eta0)) )
                 
     Beam.sigma_dt = sigma_dt
     Beam.sigma_dE = sigma_dE
@@ -852,6 +853,9 @@ def bigaussian(Ring, RFStation, Beam, sigma_dt, sigma_dE = None, seed = None,
     # Generate coordinates
     np.random.seed(seed)
     
+    if eta0<0:
+#        phi_rf -= np.pi
+        phi_s += np.pi
     Beam.dt = sigma_dt*np.random.randn(Beam.n_macroparticles) + \
               (phi_s - phi_rf)/omega_rf                  
     Beam.dE = sigma_dE*np.random.randn(Beam.n_macroparticles)
